@@ -1,0 +1,82 @@
+#!/bin/bash
+
+#set -x
+FILE=all-test
+#FILE=${0##*/}
+result=result.log
+
+function FINDFILE() {
+	local findpath=`find . -name $1`
+	local filepath=`echo $findpath | cut -d "." -f 2-`
+	local basedir=`pwd`
+	local path=$basedir$filepath
+	local DIR=`dirname $path`
+	cd $DIR
+}
+
+declare -a ret_success
+declare -a ret_fail
+declare -a coms
+
+function get_test_components() {
+	if [ $argc -eq 0 ]; then
+		local alldir=`ls -d */`
+		local dir
+		for dir in $alldir
+		do
+			## 去除'/'右边的内容
+			#coms[${#coms[@]}]=`echo $dir | tr -d '/'`
+			coms[${#coms[@]}]=${dir%/*}
+		done
+	elif [ $argc -gt 0 ]; then
+		coms=$argv
+	fi
+}
+
+function output_ret() {
+	local com_success
+	for com_success in ${ret_success[@]}
+	do
+		echo -e "\t$com_success Pass!"
+		echo -e "\t$com_success Pass!" >> $result
+	done
+	unset ret_success[*]
+	local com_fail
+	for com_fail in ${ret_fail[@]}
+	do
+		echo -e "\t$com_fail Fail!"
+		echo -e "\t$com_fail Fail!" >> $result
+	done
+	unset ret_fail[*]
+}
+
+function exec_all()
+{
+	echo -e "this is all cases test result:\n==============================" > $result
+	local com
+	for com in ${coms[@]}
+	do
+		echo -e "\n$com test begin..."
+		echo -e "\n$com case test:\n------------------------------" >> $result
+
+		if [ "$com" = "kafka" ];then
+			#source ./$com/kinit-$com; source ./$com/topic; source ./$com/producer; source ./$com/consumer;
+			source ./$com/$com-cmd;
+		else
+			#source ./$com/$com-cmd > /dev/null 2>&1;
+			source ./$com/$com-cmd;
+		fi
+
+		output_ret;
+		echo -e "\n$com test end!"
+	done
+}
+
+argc=$#
+argv=$@
+FINDFILE "$FILE"
+#./leap-info.sh
+get_test_components
+exec_all
+
+exit

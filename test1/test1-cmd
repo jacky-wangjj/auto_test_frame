@@ -1,0 +1,90 @@
+#!/bin/bash
+
+#set -x
+FILE=test1-cmd
+#FILE=${0##*/}
+function FINDFILE() {
+	local findpath=`find . -name $1`
+	local filepath=`echo $findpath | cut -d "." -f 2-`
+	local basedir=`pwd`
+	local path=$basedir$filepath
+	local DIR=`dirname $path`
+	cd $DIR
+}
+
+function get_leapinfo() {
+	FINDFILE "leap-info"
+	source leap-info
+}
+
+function FAIL() {
+	echo "$case Fail!"
+}
+
+function ERRTRAP() {
+	echo "[LINE:$1]Error: Command or function exited with status $?"
+}
+
+function BEGIN() {
+	err=0
+	case=$1
+	echo -e "\n$1 test begin...\n"
+	trap 'ERRTRAP $LINENO' ERR
+}
+
+function END() {
+	echo -e "\n$1 test end!!!\n"
+	if [ $err -eq 1  ];then
+		ret_fail[${#ret_fail[@]}]=$case;
+	elif [ $err -eq 0  ];then
+		ret_success[${#ret_success[@]}]=$1;
+	fi
+}
+
+function CHECK() {
+	if [ $? -ne 0 ];then
+		FAIL
+		err=1
+	fi
+}
+
+function ALLPASS() {
+	# 销毁密钥缓存
+	#kdestroy
+	# 退回原目录
+	cd -
+	echo "Success!"
+	# 输出测试结果
+	echo -e "success: ${ret_success[@]}"
+	echo -e "fail: ${ret_fail[@]}"
+}
+
+function test1_07() {
+	BEGIN $FUNCNAME
+
+	#cat aaa; CHECK
+	echo "this is a command"; CHECK
+
+	END $FUNCNAME
+}
+
+function test1_08() {
+	BEGIN $FUNCNAME
+
+	cat aaa; CHECK
+	echo "this is a command"; CHECK
+
+	END $FUNCNAME
+}
+
+function func() {
+	test1_07
+	test1_08
+
+	ALLPASS
+}
+
+get_leapinfo
+FINDFILE "$FILE"
+func 2>&1 > $FILE.log
+

@@ -1,0 +1,12 @@
+name=leap
+realm=LEAP.COM
+hive_server2_host=test2.leap.com
+impala_daemon_host=test3.leap.com
+zookeeper_leader_host=test3.leap.com
+spark2_thrift_server_host=test1.leap.com
+TOPIC=test1
+elk_elastic_search_host=test3.leap.com
+elk_logstash_agent_host=test1.leap.com
+kerberos_master_kdc_host=test1.leap.com
+impala_server_host=test3.leap.com
+mysql_server_host=test2.leap.com
